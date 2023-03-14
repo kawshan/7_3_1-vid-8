@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        window.addEventListener("load",initialize);
+
+        var ajax;
+        var employees;
+        var genders;
+
+        function initialize(){
+        btnClear.addEventListener("click",clearForm);
+
+        btnUpdate.setAttribute("disabled","disabled");
+        btnDelete.setAttribute("disabled","disabled");
+
+        genders= get("./gendercontroller.php");
+        fillCombo(genders,cmbGender,"name","select a gender");
+        fillCombo(genders,cmbSearchGender,"name","select a gender");
+        employees= get("./employeecontroller.php");
+        fillTable(employees,tblMain,["name","age",function (e){return e.gender.name;}]);
+        }
+
+        function get(url){
+            var http=new XMLHttpRequest();
+            http.open("GET",url,false);
+            http.send();
+            if (http.status===200){
+                return JSON.parse(http.responseText);
+
+            }
+            return null;
+        }
+        function loadView(){
+           // fillTable();
+        }
+
+        function modify(employee) {
+            let userConfirm=window.confirm("are you sure to modify this employee "+employee.name);
+            if (userConfirm){
+                txtName.value=employee.name;
+                txtAge.value=employee.age;
+                cmbGender.value=JSON.stringify(employee.gender);
+
+                btnAdd.setAttribute("disabled","disabled");
+                btnDelete.removeAttribute("disabled",);
+                btnUpdate.removeAttribute("disabled",);
+            }
+        }
+
+        function fillTable(data,table,props){
+            for (let i = 0; i <data.length ; i++) {
+                var tr=document.createElement("tr");
+                for (let j = 0; j <props.length ; j++) {
+                    let txt=document.createTextNode(typeof props[j]=="function" ? props[j](data[i]) : data[i][props[j]]);
+                    let td=document.createElement("td");
+                    td.appendChild(txt);
+                    tr.appendChild(td);
+                }
+                let button=document.createElement("input");
+                button.type="button";
+                button.value="modify";
+                button.addEventListener("click",function (e){
+                    modify(data[i]);
+                })
+                let td=document.createElement("td");
+                td.appendChild(button);
+                tr.appendChild(td);
+
+                table.children[1].appendChild(tr);
+            }
+        }
+        function fillCombo(data,cmb,text,hint){
+
+            let option=document.createElement("option");
+            option.value=null;
+            option.innerHTML=hint;
+            option.setAttribute("disabled","disabled");
+            option.setAttribute("selected","selected");
+
+            cmb.appendChild(option);
+
+
+            for (let i = 0; i < data.length; i++) {
+                const datum=data[i];
+                let option=document.createElement("option");
+                option.value=JSON.stringify(datum);
+                option.innerHTML=datum[text];
+
+                cmb.appendChild(option);
+            }
+        }
+        function clearForm() {
+            let userConfirm = window.confirm("are you sure to clear this form ");
+            if (userConfirm) {
+                txtName.value = "";
+                txtAge.value = "";
+                cmbGender.value = null;
+
+                btnUpdate.setAttribute("disabled", "disabled");
+                btnDelete.setAttribute("disabled", "disabled");
+                btnAdd.removeAttribute("disabled",);
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>employee detail manager</h1>
+<h3>-------------------search------------------</h3>
+name : <input type="text" id="txtSearchName" size="20"><br><br>
+gender : <select id="cmbSearchGender"></select><br><br>
+<button id="btnSearch">search</button>
+<button id="btnSearchClear">clear search</button>
+
+<h3>--------------------------view----------------------------</h3>
+<table id="tblMain" border="1">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Gender</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<h3>----------------------------Form----------------------------------</h3>
+name: <input type="text" id="txtName" size="20"><br><br>
+Age : <input type="text" id="txtAge" size="20"><br><br>
+Gender : <select id="cmbGender">
+
+</select><br><br>
+<button id="btnDelete">delete</button>
+<button id="btnUpdate">Update</button>
+<button id="btnClear">Clear</button>
+<button id="btnAdd">Add</button>
+</body>
+</html>
